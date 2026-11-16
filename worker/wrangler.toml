@@ -1,0 +1,19 @@
+name = "red-blue-api"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "red-blue"
+database_id = "8deca0dd-36e9-46ec-b4af-b3fa4b12ab77"
+
+# Rebuild cached totals every 5 minutes.
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+# Site addresses allowed to call the API, comma-separated ("*" allows any).
+ALLOWED_ORIGIN = "https://pressredorblue.com,https://www.pressredorblue.com"
+MAX_VOTES_PER_IP_HOUR = "20"
+
+# SALT is a secret. Set it with:  npx wrangler secret put SALT

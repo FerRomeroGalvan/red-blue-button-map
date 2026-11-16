@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fafaf9">
+  <title>Red Button, Blue Button</title>
+  <meta name="description" content="Would you press red or blue? See how the US answers, county by county.">
+  <!-- Link previews (iMessage, WhatsApp, X, Discord, Facebook…). Image paths must be full addresses. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Red Button, Blue Button">
+  <meta property="og:description" content="Everyone on Earth must press red or blue. Which would you press? See how your county answered.">
+  <meta property="og:image" content="https://pressredorblue.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://pressredorblue.com/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<!-- One screen shows at a time: question → where → results. app.js switches data-screen. -->
+<body data-screen="question">
+  <header>
+    <h1>Red Button, Blue Button</h1>
+  </header>
+
+  <main>
+    <!-- Screen 1: the question -->
+    <section id="screen-question" class="screen">
+      <p class="kicker">Everyone on Earth has to press one.</p>
+      <h2 class="question">Which would you press?</h2>
+      <div class="buttons">
+        <button id="btn-red" class="choice red" type="button">
+          <span class="choice-name">Red</span>
+          <span class="choice-text">You survive, no matter what.</span>
+        </button>
+        <button id="btn-blue" class="choice blue" type="button">
+          <span class="choice-name">Blue</span>
+          <span class="choice-text">Everyone lives, if at least half press blue.</span>
+        </button>
+      </div>
+      <p class="catch">If more than half press red, everyone who pressed blue dies.</p>
+      <p class="aside">Rather not answer? <button id="peek-btn" type="button" class="link">See the results</button></p>
+    </section>
+
+    <!-- Screen 2: where are you? -->
+    <section id="screen-where" class="screen">
+      <div class="card where">
+        <p class="you-chose">You pressed <span id="chosen-chip" class="chip"></span></p>
+        <h2>Where are you?</h2>
+        <p class="muted">Your vote counts toward your county and state on the map.</p>
+        <div class="loc">
+          <label>State
+            <select id="state-select"><option value="">Choose a state</option></select>
+          </label>
+          <label>County
+            <select id="county-select" disabled><option value="">Choose a county</option></select>
+          </label>
+        </div>
+        <button id="locate-btn" type="button" class="link">Use my location instead</button>
+        <button id="submit-btn" type="button" class="primary" disabled>Submit my vote</button>
+        <p id="vote-msg" class="muted" aria-live="polite"></p>
+        <button id="back-btn" type="button" class="link back">Change my answer</button>
+      </div>
+    </section>
+
+    <!-- Screen 3: results -->
+    <section id="screen-results" class="screen">
+      <div class="card verdict-card">
+        <div id="national"></div>
+        <p class="quick-share"><button id="quick-share-btn" type="button" class="link">Ask your friends what they'd press</button></p>
+      </div>
+
+      <div class="card">
+        <div class="map-head">
+          <h2>The map</h2>
+          <div class="toggle" role="group" aria-label="Map level">
+            <button data-level="state" class="active">States</button>
+            <button data-level="county">Counties</button>
+          </div>
+        </div>
+        <div id="map-wrap">
+          <div id="map"></div>
+          <button id="reset-zoom" type="button" hidden>Reset zoom</button>
+        </div>
+        <p class="muted small map-hint">Pinch or drag to zoom. Tap a place for its numbers.</p>
+        <div id="legend"></div>
+        <p id="updated" class="muted small center"></p>
+      </div>
+
+      <div class="stats">
+        <div class="card">
+          <h3>Would your state survive?</h3>
+          <p class="muted small">Share of red presses by state. Above 50% means everyone who pressed blue dies.</p>
+          <ol id="state-rank" class="rank"></ol>
+        </div>
+        <div class="card">
+          <h3>Closest counties</h3>
+          <p class="muted small">Counties nearest the 50% line, with at least <span class="min-n"></span> votes.</p>
+          <ol id="close-counties" class="rank"></ol>
+        </div>
+      </div>
+
+      <p id="vote-cta" class="center"><button id="vote-now-btn" type="button" class="primary">Answer the question</button></p>
+
+      <div class="card share-card">
+        <h2>Ask your friends</h2>
+        <p class="muted">Would they press red or blue? The map gets more interesting with every vote.</p>
+        <div class="share-actions">
+          <button id="share-btn" type="button" class="primary">Share</button>
+          <button id="share-img-btn" type="button" class="secondary">Instagram / TikTok</button>
+        </div>
+        <p class="muted small share-hint">Opens your share menu with a story-sized image. Pick Instagram or TikTok, then Story.</p>
+        <!-- Shown only where the phone-style share sheet isn't available (most desktops). -->
+        <div id="share-panel" class="share-panel" hidden>
+          <button id="copy-link-btn" type="button" class="secondary">Copy link</button>
+          <a id="share-x" class="secondary" target="_blank" rel="noopener">X</a>
+          <a id="share-fb" class="secondary" target="_blank" rel="noopener">Facebook</a>
+          <a id="share-wa" class="secondary" target="_blank" rel="noopener">WhatsApp</a>
+          <a id="share-reddit" class="secondary" target="_blank" rel="noopener">Reddit</a>
+          <a id="share-email" class="secondary">Email</a>
+        </div>
+        <p id="share-msg" class="muted small" aria-live="polite"></p>
+      </div>
+
+
+      <!-- Results screen only, at the bottom. -->
+      <p id="support" class="support">
+        <a class="support-btn" href="#" target="_blank" rel="noopener">☕ Buy Me a Coffee</a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p class="muted small">Each map treats its region as if it were the whole world. Results reflect whoever found this page, not a representative sample.</p>
+    <p class="muted small">Privacy: we store your county, your choice, and a hashed browser token to limit repeat votes. No names, emails, or exact locations. Only totals are shown, and counties with fewer than <span class="min-n"></span> votes are hidden.</p>
+  </footer>
+
+  <!-- Shown on phones that can't share pictures: long-press the image to save it to Photos. -->
+  <dialog id="story-dialog" class="story-dialog" aria-labelledby="story-dialog-title">
+    <img id="story-img" alt="Story picture: Which would you press? Red or blue, with the site address.">
+    <p id="story-dialog-title"><strong>Press and hold the picture</strong> to save it to your photos.</p>
+    <p class="muted small">Then post it to your Instagram or TikTok story and add a link sticker with the site address.</p>
+    <p id="story-tip" class="muted small" hidden>Tip: in Safari, this button opens your share menu directly.</p>
+    <div class="dialog-actions">
+      <button id="story-copy-btn" type="button" class="secondary">Copy link</button>
+      <button id="story-close-btn" type="button" class="primary">Done</button>
+    </div>
+  </dialog>
+
+  <div id="tooltip" class="tooltip" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
